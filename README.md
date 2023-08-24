@@ -1,4 +1,4 @@
-[![GitHub Stars](https://img.shields.io/github/stars/wjbmattingly/keyword?style=social)](https://github.com/wjbmattingly/keyword-spacy)
+[![GitHub Stars](https://img.shields.io/github/stars/wjbmattingly/keyword-spacy?style=social)](https://github.com/wjbmattingly/keyword-spacy)
 [![PyPi Version](https://img.shields.io/pypi/v/keyword-spacy)](https://pypi.org/project/keyword-spacy/0.0.1/)
 [![PyPi Downloads](https://img.shields.io/pypi/dm/keyword-spacy)](https://pypi.org/project/keyword-spacy/0.0.1/)
 
