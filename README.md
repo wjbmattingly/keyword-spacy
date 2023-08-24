@@ -1,4 +1,10 @@
+[![GitHub Stars](https://img.shields.io/github/stars/wjbmattingly/keyword?style=social)](https://github.com/wjbmattingly/keyword-spacy)
+[![PyPi Version](https://img.shields.io/pypi/v/keyword-spacy)](https://pypi.org/project/keyword-spacy/0.0.1/)
+[![PyPi Downloads](https://img.shields.io/pypi/dm/keyword-spacy)](https://pypi.org/project/keyword-spacy/0.0.1/)
+
 # Keyword spaCy
+
+![keyword spacy](https://github.com/wjbmattingly/keyword-spacy/blob/main/images/keyword-spacy-logo.png?raw=true)
 
 Keyword spaCy is a spaCy pipeline component for extracting keywords from text using cosine similarity. The basis for this comes from [KeyBERT: A Minimal Method for Keyphrase Extraction using BERT](https://github.com/MaartenGr/KeyBERT), a transformer-based approach to keyword extraction. The methods employed by Keyword spaCy follow this methodology closely. It allows users to specify the range of n-grams to consider and can operate in a strict mode, which limits results to the specified n-gram range.
 
@@ -7,7 +13,7 @@ Keyword spaCy is a spaCy pipeline component for extracting keywords from text us
 Before using Keyword spaCy, make sure you have spaCy installed:
 
 ```
-pip install spacy
+pip install keyword-spacy
 ```
 
 Then, download the `en_core_web_md` model:
@@ -28,15 +34,19 @@ nlp = spacy.load("en_core_web_md")
 Then, add the `KeywordExtractor` to the pipeline:
 
 ```python
-nlp.add_pipe("keyword_extractor", last=True, config={"top_n": 10, "min_ngram": 1, "max_ngram": 3, "strict": False})
+nlp.add_pipe("keyword_extractor", last=True, config={"top_n": 10, "min_ngram": 3, "max_ngram": 3, "strict": True})
 ```
 
 Now you can process text and extract keywords:
 
 ```python
-text = "Your sample text here."
+text = "Natural language processing is a fascinating domain of artificial intelligence. It allows computers to understand and generate human language."
 doc = nlp(text)
 print("Top Keywords:", doc._.keywords)
+```
+Output:
+```
+Top Keywords: ['generate human language', 'Natural language processing']
 ```
 
 ## Configuration
