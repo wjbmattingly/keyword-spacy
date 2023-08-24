@@ -2,7 +2,7 @@
 [![PyPi Version](https://img.shields.io/pypi/v/keyword-spacy)](https://pypi.org/project/keyword-spacy/0.0.1/)
 [![PyPi Downloads](https://img.shields.io/pypi/dm/keyword-spacy)](https://pypi.org/project/keyword-spacy/0.0.1/)
 
-# Keyword spaCy
+# 🔑 Keyword spaCy
 
 ![keyword spacy](https://github.com/wjbmattingly/keyword-spacy/blob/main/images/keyword-spacy-logo.png?raw=true)
 
@@ -48,6 +48,8 @@ Output:
 ```
 Top Keywords: ['generate human language', 'Natural language processing']
 ```
+
+Each token that is not a punctuation also receives a special attribute `._.keyword_value`, this is the value of a given word's similarity to the `doc.vector`. This may be helpful for other downstream tasks.
 
 ## Configuration
 
