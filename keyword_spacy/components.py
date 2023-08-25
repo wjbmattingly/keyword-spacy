@@ -10,8 +10,9 @@ Span.set_extension("sent_keywords", default=[], force=True)
 
 @Language.factory("keyword_extractor")
 class KeywordExtractor:
-    def __init__(self, nlp, name, top_n=5, min_ngram=1, max_ngram=3, strict=False):
+    def __init__(self, nlp, name, top_n=5, top_n_sent=2, min_ngram=1, max_ngram=3, strict=False):
         self.top_n = top_n
+        self.top_n_sent = top_n_sent
         self.min_ngram = min_ngram
         self.max_ngram = max_ngram
         self.strict = strict
@@ -58,7 +59,7 @@ class KeywordExtractor:
         # Sort based on similarity values
         sorted_tokens = sorted(token_values, key=lambda x: x[1], reverse=True)
 
-        # Extract top keywords for the sentence
-        sent_keywords = [token[0] for token in sorted_tokens[:2]]
+        # Extract top keywords for the sentence based on `top_n_sent`
+        sent_keywords = [token[0] for token in sorted_tokens[:self.top_n_sent]]
 
         return sent_keywords

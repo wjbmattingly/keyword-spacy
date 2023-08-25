@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="keyword_spacy",
-    version="0.1.1",
+    version="0.1.2",
     description="A spaCy pipeline component for extracting keywords from text using cosine similarity.",
     long_description=open("README.md", "r", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
