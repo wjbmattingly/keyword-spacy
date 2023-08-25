@@ -1,0 +1,9 @@
+README.md
+setup.py
+keyword_spacy/__init__.py
+keyword_spacy/components.py
+keyword_spacy.egg-info/PKG-INFO
+keyword_spacy.egg-info/SOURCES.txt
+keyword_spacy.egg-info/dependency_links.txt
+keyword_spacy.egg-info/requires.txt
+keyword_spacy.egg-info/top_level.txt
