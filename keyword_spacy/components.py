@@ -2,6 +2,7 @@ import spacy
 from spacy.tokens import Doc, Token, Span
 from spacy.language import Language
 from collections import defaultdict
+import numpy as np
 
 # Set extensions for tokens, doc, and sentence
 Token.set_extension("keyword_value", default=0.0, force=True)
@@ -16,9 +17,34 @@ class KeywordExtractor:
         self.min_ngram = min_ngram
         self.max_ngram = max_ngram
         self.strict = strict
+        self.use_transformer = "transformer" in nlp.pipe_names
 
     def valid_token(self, token):
-        return not (token.is_punct or token.is_stop or token.like_num or not token.has_vector)
+        if self.use_transformer:
+            return not (token.is_punct or token.is_stop or token.like_num)
+        else:
+            return not (token.is_punct or token.is_stop or token.like_num or not token.has_vector)
+
+    def cosine_similarity(self, vec1, vec2):
+        return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+
+    def token_vector(self, token):
+        if self.use_transformer:
+            tensor_indices = token.doc._.trf_data.align[token.i].data.flatten()
+            tensor_shape = token.doc._.trf_data.tensors[0].shape[-1]
+            tensor = token.doc._.trf_data.tensors[0].reshape(-1, tensor_shape)[tensor_indices]
+            return tensor.mean(axis=0)
+        else:
+            return token.vector
+
+    def span_vector(self, span):
+        if self.use_transformer:
+            tensor_indices = span.doc._.trf_data.align[span.start: span.end].data.flatten()
+            tensor_shape = span.doc._.trf_data.tensors[0].shape[-1]
+            tensor = span.doc._.trf_data.tensors[0].reshape(-1, tensor_shape)[tensor_indices]
+            return tensor.mean(axis=0)
+        else:
+            return span.vector
 
     def __call__(self, doc):
         keyword_freqs = defaultdict(int)
@@ -29,7 +55,7 @@ class KeywordExtractor:
             sent_keywords = self.extract_keywords(sent)
             for keyword, similarity in sent_keywords:
                 keyword_freqs[keyword] += 1
-                keyword_similarities[keyword] = similarity  # Store similarity score
+                keyword_similarities[keyword] = similarity
             sent._.sent_keywords = sent_keywords
 
         # Sort keywords based on frequency for the entire document
@@ -39,14 +65,15 @@ class KeywordExtractor:
         doc._.keywords = [(keyword, keyword_freqs[keyword], keyword_similarities[keyword]) for keyword in sorted_keywords[:self.top_n]]
         
         return doc
-
     def extract_keywords(self, span):
         token_values = set()
 
         # Calculate the cosine similarity for individual tokens
+        span_vec = self.span_vector(span)
         for token in span:
             if self.valid_token(token):
-                token._.keyword_value = token.similarity(span)
+                similarity = self.cosine_similarity(self.token_vector(token), span_vec)
+                token._.keyword_value = similarity
                 if not self.strict:
                     token_values.add((token.text, token._.keyword_value))
 
@@ -57,13 +84,15 @@ class KeywordExtractor:
                     ngram = span[i:i+n]
                     if all(self.valid_token(token) for token in ngram):
                         ngram_text = " ".join([token.text for token in ngram])
-                        similarity = ngram.similarity(span)
+                        similarity = self.cosine_similarity(self.span_vector(ngram), span_vec)
                         token_values.add((ngram_text.strip(), similarity))
 
         # Sort based on similarity values
         sorted_tokens = sorted(token_values, key=lambda x: x[1], reverse=True)
 
+
         # Extract top keywords for the sentence based on `top_n_sent`
         sent_keywords = sorted_tokens[:self.top_n_sent]
 
         return sent_keywords
+
