@@ -1,10 +1,12 @@
 import spacy
 from spacy.tokens import Doc, Token, Span
 from spacy.language import Language
+from collections import defaultdict
 
-# Set extensions for tokens and doc
+# Set extensions for tokens, doc, and sentence
 Token.set_extension("keyword_value", default=0.0, force=True)
 Doc.set_extension("keywords", default=[], force=True)
+Span.set_extension("sent_keywords", default=[], force=True)
 
 @Language.factory("keyword_extractor")
 class KeywordExtractor:
@@ -18,31 +20,45 @@ class KeywordExtractor:
         return not (token.is_punct or token.is_stop or token.like_num or not token.has_vector)
 
     def __call__(self, doc):
+        keyword_freqs = defaultdict(int)
+
+        # Process each sentence
+        for sent in doc.sents:
+            sent_keywords = self.extract_keywords(sent)
+            for keyword in sent_keywords:
+                keyword_freqs[keyword] += 1
+            sent._.sent_keywords = sent_keywords
+
+        # Sort keywords based on frequency for the entire document
+        sorted_keywords = sorted(keyword_freqs.keys(), key=lambda x: keyword_freqs[x], reverse=True)
+        doc._.keywords = sorted_keywords[:self.top_n]
+        
+        return doc
+
+    def extract_keywords(self, span):
         token_values = set()
 
         # Calculate the cosine similarity for individual tokens
-        for token in doc:
+        for token in span:
             if self.valid_token(token):
-                token._.keyword_value = token.similarity(doc)
+                token._.keyword_value = token.similarity(span)
                 if not self.strict:
                     token_values.add((token.text, token._.keyword_value))
 
-        # Calculate the cosine similarity for n-grams based on min_ngram and max_ngram
-        for n in range(self.min_ngram, self.max_ngram + 1):
-            for i in range(len(doc) - n + 1):
-                ngram = doc[i:i+n]
-                if all(self.valid_token(token) for token in ngram):
-                    similarity = ngram.similarity(doc)
-                    ngram_text = " ".join([token.text for token in ngram])
-                    token_values.add((ngram_text.strip(), similarity))
-                    # If ngram is ranked, suppress individual tokens from the ranking
-                    for token in ngram:
-                        token_values.discard((token.text, token._.keyword_value))
-        
+        # If min_ngram and max_ngram are not both 1, perform n-gram extraction
+        if not (self.min_ngram == 1 and self.max_ngram == 1):
+            for n in range(self.min_ngram, self.max_ngram + 1):
+                for i in range(len(span) - n + 1):
+                    ngram = span[i:i+n]
+                    if all(self.valid_token(token) for token in ngram):
+                        ngram_text = " ".join([token.text for token in ngram])
+                        similarity = ngram.similarity(span)
+                        token_values.add((ngram_text.strip(), similarity))
+
         # Sort based on similarity values
         sorted_tokens = sorted(token_values, key=lambda x: x[1], reverse=True)
-        
-        # Extract top keywords, ensuring they don't start or end with punctuation or whitespace
-        top_keywords = [token[0] for token in sorted_tokens[:self.top_n] if not (token[0].startswith(('\n', ' ')) or token[0].endswith(('\n', ' ')))]
-        doc._.keywords = top_keywords
-        return doc
+
+        # Extract top keywords for the sentence
+        sent_keywords = [token[0] for token in sorted_tokens[:2]]
+
+        return sent_keywords
