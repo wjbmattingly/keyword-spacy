@@ -6,7 +6,7 @@
 
 # 🔑 Keyword spaCy
 
-Keyword spaCy is a spaCy pipeline component for extracting keywords from text using cosine similarity. It leverages the power of spaCy's token and document vectors, and is adept at integrating with transformer models to calculate similarity scores and extract the most relevant keywords from the text.
+Keyword spaCy is a spaCy pipeline component for extracting keywords from text using cosine similarity. The basis for this comes from [KeyBERT: A Minimal Method for Keyphrase Extraction using BERT](https://github.com/MaartenGr/KeyBERT), a transformer-based approach to keyword extraction. The methods employed by Keyword spaCy follow this methodology closely. It allows users to specify the range of n-grams to consider and can operate in a strict mode, which limits results to the specified n-gram range.
 
 ## Transformer Model Integration
 
