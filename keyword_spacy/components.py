@@ -22,17 +22,21 @@ class KeywordExtractor:
 
     def __call__(self, doc):
         keyword_freqs = defaultdict(int)
+        keyword_similarities = defaultdict(float)
 
         # Process each sentence
         for sent in doc.sents:
             sent_keywords = self.extract_keywords(sent)
-            for keyword in sent_keywords:
+            for keyword, similarity in sent_keywords:
                 keyword_freqs[keyword] += 1
+                keyword_similarities[keyword] = similarity  # Store similarity score
             sent._.sent_keywords = sent_keywords
 
         # Sort keywords based on frequency for the entire document
         sorted_keywords = sorted(keyword_freqs.keys(), key=lambda x: keyword_freqs[x], reverse=True)
-        doc._.keywords = sorted_keywords[:self.top_n]
+        
+        # Convert the sorted keywords to tuples with their frequency and similarity scores
+        doc._.keywords = [(keyword, keyword_freqs[keyword], keyword_similarities[keyword]) for keyword in sorted_keywords[:self.top_n]]
         
         return doc
 
@@ -60,6 +64,6 @@ class KeywordExtractor:
         sorted_tokens = sorted(token_values, key=lambda x: x[1], reverse=True)
 
         # Extract top keywords for the sentence based on `top_n_sent`
-        sent_keywords = [token[0] for token in sorted_tokens[:self.top_n_sent]]
+        sent_keywords = sorted_tokens[:self.top_n_sent]
 
         return sent_keywords
