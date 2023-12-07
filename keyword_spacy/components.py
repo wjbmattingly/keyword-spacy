@@ -85,7 +85,7 @@ class KeywordExtractor:
                     if all(self.valid_token(token) for token in ngram):
                         ngram_text = " ".join([token.text for token in ngram])
                         similarity = self.cosine_similarity(self.span_vector(ngram), span_vec)
-                        token_values.add((ngram_text.strip(), similarity))
+                        token_values.add((ngram_text.strip(), similarity.item()))
 
         # Sort based on similarity values
         sorted_tokens = sorted(token_values, key=lambda x: x[1], reverse=True)
